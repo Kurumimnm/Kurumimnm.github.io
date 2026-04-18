@@ -1,0 +1,50 @@
+name: Deploy Vite site to GitHub Pages
+
+on:
+  push:
+    branches: ['main'] # メインのブランチ名が master の場合は 'master' に変更してください
+
+# GITHUB_TOKENの権限設定（GitHub Pagesへのデプロイに必須）
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# デプロイが重複しないようにする設定
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist' # Viteのデフォルトのビルド出力先
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
